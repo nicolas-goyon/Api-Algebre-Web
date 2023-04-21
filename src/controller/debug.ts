@@ -1,68 +1,137 @@
 import { Generated } from "kysely";
-import { db, executeSQL, getShema } from "../rooter/database";
+import { db, executeSQL } from "../rooter/database";
+import express from "express";
+export const router = express.Router();
+// Route : /debug
+/* -------------------------------------------------------------------------- */
+/*                                   ROUTER                                   */
+/* -------------------------------------------------------------------------- */
+
+router.get('/getAllLines', async (req, res) => {
+    
+    let query = await db
+        .selectFrom(testTable.table_name)
+        .selectAll()
+        .execute()
+    res.json(query);
+  
+});
+  
+  
+router.get('/addLine/:pass', async (req, res) => {
+    
+    let add = await db
+        .insertInto(testTable.table_name)
+        .values({ password : req.params.pass })
+        .execute()
+    let query = await db
+        .selectFrom(testTable.table_name)
+        .selectAll()
+        .execute()
+    res.json(query);
+  
+});
+
+router.get('/getLineById/:id', async (req, res) => {
+    let query = await testTable.getLineById(Number(req.params.id));
+    res.json(query);
+});
+
+router.get('/deleteLineById/:id', async (req, res) => {
+    let deleteLine = await db
+        .deleteFrom(testTable.table_name)
+        .where('id', '=', Number(req.params.id))
+        .execute()
+    let query = await db
+        .selectFrom(testTable.table_name)
+        .selectAll()
+        .execute()
+    res.json(query);
+});
+
+/* -------------------------------------------------------------------------- */
+/*                                 FIN ROUTER                                 */
+/* -------------------------------------------------------------------------- */
+
+
+/* -------------------------------------------------------------------------- */
+/*                                CREATE TABLE                                */
+/* -------------------------------------------------------------------------- */
+
+
+router.get('/createTable', async (req, res) => {
+    let sqlQuery = ''
+        + 'CREATE TABLE "'+ testTable.table_name +'" (';
+            + '"id" SERIAL PRIMARY KEY,';
+            + '"password" VARCHAR(255) NOT NULL,';
+            + '"create_date" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP';
+        + ');';
+    let query = await executeSQL(sqlQuery,[]);
+    res.json(query);
+});
+
+/* -------------------------------------------------------------------------- */
+/*                              FIN CREATE TABLE                              */
+/* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+/*                                    CLASS                                   */
+/* -------------------------------------------------------------------------- */
+
 
 export interface test_table {
     id: Generated<number>
     password: String
     create_date: Generated<String>
 }
-  
-export const getDataBaseInfo = async () => {
-    return getShema();
-};
-
-export const testBuilder =async () => {
-    
-    let query = await db
-        .insertInto('test_table')
-        .values({ password : "dazdadaz" })
-        // .execute()
-    console.log(query)
 
 
-    let query2 = await db
-        .selectFrom('test_table')
-        // .where('gender', '=', 'female')
-        .selectAll()
-        .compile()
-    console.log(query2.sql+ ";")
-    let result =  await executeSQL(query2.sql + ";", [])
-    // const result = query.execute()
-    return result;
-}
-
-class testTable {
+export class testTable {
     public static readonly table_name = "test_table";
 
-    private id : number;
+    private id : number | null;
     private password: String;
-    private create_date: String;
+    private create_date: String | null;
 
-    constructor(id:number | null) {
-        this.id = -1
-        this.password = ""
-        this.create_date = ""
-        if(id !== null){
-            let data = testTable.getDataLineById(id);
-            this.id = id;
-            this.password = data.password;
-            this.create_date = data.create_date;
-        }
+    constructor(id:number | null, password: String, create_date: String | null){
+        this.id = id
+        this.password = password
+        this.create_date = create_date
     }
 
-    public static getLineById(id:number): testTable{
-        return new testTable(id);
+    public static async getLineById(id:number): Promise<testTable|null>{
+        const data = await testTable.getDataLineById(id);
+        if (data !== undefined)
+            return new testTable(id, data.password, data.create_date);
+        return null;
     }
 
-    public static getDataLineById(id:number): {id:number,password: string,create_date: string} {
-        let result = {id:-1, password: "", create_date: ""};
-        let dbresult = db
+    public static async getDataLineById(id:number): Promise<{ password: String, id: number, create_date: String; } | undefined> {
+        let dbresult = await db
             .selectFrom(testTable.table_name)
             .where('id', '=', id)
             .selectAll()
-            .executeTakeFirst
-        if (dbresult !== undefined)
-            result = dbresult;
-        return result;
+            .executeTakeFirst()
+        return dbresult;
+    }
+
+    public async save() {
+        if (this.id === null) {
+            const result = await db
+                .insertInto(testTable.table_name)
+                .values({ password: this.password })
+                .execute()
+            this.id = result.insertId
+        } else {
+            await db
+                .update(testTable.table_name)
+                .set({ password: this.password })
+                .where('id', '=', this.id)
+                .execute()
+        }
     }
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                  FIN CLASS                                 */
+/* -------------------------------------------------------------------------- */

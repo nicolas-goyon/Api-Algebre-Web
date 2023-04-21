@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
-import { Generated, Kysely, PostgresDialect } from 'kysely';
-import { test_table } from '../controller/debug';
+import { Kysely, PostgresDialect } from 'kysely';
+import { test_table, utilisateur } from '../controller';
 
 const pool = new Pool({
   user: 'algebre',
@@ -13,6 +13,7 @@ const pool = new Pool({
 
 interface Database {
   test_table:test_table
+  utilisateur:utilisateur
 }
 // You'd create one of these when you start your app.
 export const db = new Kysely<Database>({
@@ -21,10 +22,6 @@ export const db = new Kysely<Database>({
     pool: pool
   })
 })
-export const getShema = async () => {
-  return executeSQL('SELECT * FROM "test_table";',[]);
-};
-
 
 export const executeSQL = async (query:string, values:Array<string>) => {
   var result = await pool.query({
