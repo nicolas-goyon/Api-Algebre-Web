@@ -8,4 +8,7 @@ router.get<{}, EmojiResponse>('/', (req, res) => {
   res.json(['😀', '😳', '🙄']);
 });
 
+
+
+
 export default router;

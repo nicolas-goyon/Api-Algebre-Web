@@ -1,4 +1,5 @@
-class Utilisateur {
+class Builder {
+    
     constructor() {
         
     }
