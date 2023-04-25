@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { Kysely, PostgresDialect } from 'kysely';
-import { test_table, utilisateur } from '../controller';
+import { test_table, utilisateur } from '../models';
 
 const pool = new Pool({
   user: 'algebre',

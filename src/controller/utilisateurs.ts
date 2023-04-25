@@ -1,50 +1,103 @@
 import express from 'express';
 import { db } from '../rooter/database';
+import { Utilisateur } from '../models';
 export const router = express.Router();
-
-
-
-
+// Route : /utilisateur
 /* -------------------------------------------------------------------------- */
-/*                                    CLASS                                   */
+/*                                   ROUTER                                   */
 /* -------------------------------------------------------------------------- */
 
-export interface utilisateur {
-    id: number;
-    pseudo: string;
-    password: string;
-    email: string;
-    create_date: string;
-}
+router.get('/getAllUtilisateurs', async (req, res) => {
+    let query = await db
+        .selectFrom(Utilisateur.table_name)
+        .selectAll()
+        .execute()
+    res.json(query); // TODO : return 404 if null
+});
 
-export class Utilisateur {
-    public static readonly table_name = "utilisateur";
+router.get('/getUtilisateurById/:id', async (req, res) => {
+    let query = await Utilisateur.getUtilisateurById(Number(req.params.id));
+    res.json(query); // TODO : return 404 if null
+});
 
-    private id : number | null;
-    private pseudo: string;
-    private password: string;
-    private email: string;
-    private create_date: string | null;
-    
-    constructor(id:number | null, pseudo: string, password: string, email: string, create_date: string | null){
-        this.id = id
-        this.pseudo = pseudo
-        this.password = password
-        this.email = email
-        this.create_date = create_date
+router.get('/addUtilisateur/:pseudo/:password/:email', async (req, res) => {
+    let data = { // TODO : make this function with body values and post method
+        pseudo: req.params.pseudo,
+        email: req.params.email,
+        password: req.params.password,
     }
+    let user = new Utilisateur(null, data.pseudo, data.password, data.email, null);
+    await user.save();
+    res.json(200); // FIXME : check if save is ok
+});
 
-    public static async getUtilisateurById(id:number): Promise<Utilisateur|null>{
-        const data = await Utilisateur.getDataUtilisateurById(id);
-        if (data !== undefined)
-            return new Utilisateur(id, data.pseudo, data.password, data.email, data.create_date);
-        return null;
+router.post('/deleteUtilisateurById/:id', async (req, res) => {
+    let deleteLine = new Utilisateur(Number(req.params.id), "", "", "", null);
+    await deleteLine.delete();
+    res.json(200); // FIXME : check if delete is ok
+});
+
+router.put('/updateUtilisateurById/:id', async (req, res) => {
+    let data = {
+        pseudo: req.body.pseudo,
+        email: req.body.email,
+        password: req.body.password,
     }
+    let user = new Utilisateur(Number(req.params.id), data.pseudo, data.password, data.email, null);
+    await user.save();
+    res.json(200); // FIXME : check if save is ok
+});
 
-    public static async getDataUtilisateurById(id:number): Promise<utilisateur | undefined>{
-        const data = await db.selectFrom('utilisateur').where('id', '=', id).selectAll().executeTakeFirst();
-        return data;
+router.get('/createTable', async (req, res) => {
+    // await Utilisateur.createTableUtilisateur();
+    res.json(200); // FIXME : check if create is ok
+});
+
+// Check password and pseudo
+router.post('/checkPassword', async (req, res) => {
+    let data = {
+        pseudo: req.body.pseudo,
+        password: req.body.password,
     }
+    let user = await Utilisateur.getUtilisateurByPseudo(data.pseudo);
+    if (user !== null) {
+        if (user.getPassword() === data.password) {
+            res.json(200);
+        } else {
+            res.json(401);
+        }
+    } else {
+        res.json(401);
+    }
+});
 
-}
-export default router;
+// Check if pseudo is already used
+router.get('/check/:pseudo', async (req, res) => {
+    let data = { // TODO : make this function with body values and post method
+        pseudo: req.params.pseudo,
+    }
+    let user = await Utilisateur.getUtilisateurByPseudo(data.pseudo);
+    if (user !== null) {
+        res.json(200);
+    } else {
+        res.json(401);
+    }
+});
+
+// Check if email is already used
+router.get('/check/:email', async (req, res) => {
+    let data = { // TODO : make this function with body values and post method
+        email: req.params.email,
+    }
+    let user = await Utilisateur.getUtilisateurByEmail(data.email);
+    if (user !== null) {
+        res.json(200);
+    } else {
+        res.json(401);
+    }
+});
+
+/* -------------------------------------------------------------------------- */
+/*                                 FIN ROUTER                                 */
+/* -------------------------------------------------------------------------- */
+

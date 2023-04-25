@@ -1,6 +1,6 @@
-import { Generated } from "kysely";
 import { db, executeSQL } from "../rooter/database";
 import express from "express";
+import { test_table, testTable } from "../models";
 export const router = express.Router();
 // Route : /debug
 /* -------------------------------------------------------------------------- */
@@ -46,7 +46,28 @@ router.get('/deleteLineById/:id', async (req, res) => {
         .selectFrom(testTable.table_name)
         .selectAll()
         .execute()
-    res.json(query);
+    if (deleteLine.length === 0){
+        res.status(500);
+        res.json({error: "Line not found"})
+    }
+    else {
+        res.status(200);
+        res.json(query);
+    }
+});
+
+router.get('/updateLineById/:id/:pass', async (req, res) => {
+    let updateLine = await testTable.getLineById(Number(req.params.id));
+    if(updateLine !== null){
+        updateLine.setPassword(req.params.pass);
+        await updateLine.save();
+        res.status(200);
+        res.json(updateLine);
+    }
+    else {
+        res.status(500);
+        res.json({error: "Line not found"})
+    }
 });
 
 /* -------------------------------------------------------------------------- */
@@ -72,66 +93,4 @@ router.get('/createTable', async (req, res) => {
 
 /* -------------------------------------------------------------------------- */
 /*                              FIN CREATE TABLE                              */
-/* -------------------------------------------------------------------------- */
-
-/* -------------------------------------------------------------------------- */
-/*                                    CLASS                                   */
-/* -------------------------------------------------------------------------- */
-
-
-export interface test_table {
-    id: Generated<number>
-    password: String
-    create_date: Generated<String>
-}
-
-
-export class testTable {
-    public static readonly table_name = "test_table";
-
-    private id : number | null;
-    private password: String;
-    private create_date: String | null;
-
-    constructor(id:number | null, password: String, create_date: String | null){
-        this.id = id
-        this.password = password
-        this.create_date = create_date
-    }
-
-    public static async getLineById(id:number): Promise<testTable|null>{
-        const data = await testTable.getDataLineById(id);
-        if (data !== undefined)
-            return new testTable(id, data.password, data.create_date);
-        return null;
-    }
-
-    public static async getDataLineById(id:number): Promise<{ password: String, id: number, create_date: String; } | undefined> {
-        let dbresult = await db
-            .selectFrom(testTable.table_name)
-            .where('id', '=', id)
-            .selectAll()
-            .executeTakeFirst()
-        return dbresult;
-    }
-
-    public async save() {
-        if (this.id === null) {
-            const result = await db
-                .insertInto(testTable.table_name)
-                .values({ password: this.password })
-                .execute()
-            this.id = result.insertId
-        } else {
-            await db
-                .update(testTable.table_name)
-                .set({ password: this.password })
-                .where('id', '=', this.id)
-                .execute()
-        }
-    }
-}
-
-/* -------------------------------------------------------------------------- */
-/*                                  FIN CLASS                                 */
 /* -------------------------------------------------------------------------- */

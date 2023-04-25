@@ -1,9 +1,11 @@
 import express from 'express';
-import { router as debugRouter } from '../controller/debug';
+import { TestTableRouter, UtilisateurRouter, Authenticator } from '../controller';
 
 const router = express.Router();
 
-router.use('/debug', debugRouter);
+router.use('/debug', TestTableRouter);
+router.use('/utilisateur', UtilisateurRouter);
+router.use('/auth', Authenticator);
 
 router.get('/', (req,res) => {
   res.json('404 : url non trouvée');
