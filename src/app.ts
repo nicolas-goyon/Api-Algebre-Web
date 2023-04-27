@@ -6,6 +6,16 @@ import router from './rooter';
 import cookieParser from 'cookie-parser';
 import { middlewares, authMiddlewares } from './middlewares';
 
+
+declare global {
+    namespace Express {
+        interface Request {
+            context: any
+        }
+    }
+}
+
+
 require('dotenv').config();
 
 const app = express();
@@ -19,10 +29,11 @@ app.use(cookieParser());
 
 app.use(authMiddlewares.authenticate);
 // add middleware here before middlewares.[...]
-app.use(middlewares.notFound);
-app.use(middlewares.errorHandler);
 
 app.use('/' , router);
+
+app.use(middlewares.notFound);
+app.use(middlewares.errorHandler);
 
 
 export default app;

@@ -1,20 +1,11 @@
 import express from 'express';
 import { db } from '../rooter/database';
-import { Utilisateur } from '../models';
+import { Token, Utilisateur } from '../models';
 export const router = express.Router();
 // Route : /utilisateur
 /* -------------------------------------------------------------------------- */
 /*                                   ROUTER                                   */
 /* -------------------------------------------------------------------------- */
-
-
-declare global {
-    namespace Express {
-        interface Request {
-            context: any
-        }
-    }
-}
 
 
 router.get('/me', async (req, res) => {
@@ -26,12 +17,21 @@ router.get('/me', async (req, res) => {
         pseudo : req.context.pseudo,
         email : req.context.email,
     }
-    res.json(data); // TODO : return 404 if null
-    // res.status(401).json('Utilisateur non connecté');
+    res.json(data).status(201); // TODO : return 404 if null
 });
 
+router.get('/logout', async (req, res) => {
+    if (req.context === null || req.context === undefined) {
+        res.status(401).json('Utilisateur non connecté');
+        return;
+    }
+    // get the token and remove it from the database
+    let token = req.context.token;
+    let tokenItem = await Token.getTokenByToken(token);
+    await tokenItem?.delete();
+    res.json('Utilisateur déconnecté').status(201); // TODO : return 404 if null
 
-
+});
 
 
 

@@ -49,12 +49,23 @@ export class Token {
         return await Utilisateur.getUtilisateurById(this.user_id);
     }
 
+    public async delete() {
+        await db
+            .deleteFrom(Token.table_name)
+            .where("id", "=", this.id)
+            .execute();
+        return;
+    }
+
     public static async getTokenByToken(token : string) : Promise<Token | null> {
         const result = await db
             .selectFrom(Token.table_name)
             .where( "token", "=", token)
             .selectAll()
-            .executeTakeFirstOrThrow();
+            .executeTakeFirst();
+        if (result === null || result === undefined) {
+            return null;
+        }
         return new Token(result.id, result.token, result.user_id, result.create_date);
     }
 
@@ -89,6 +100,8 @@ export class Token {
         const res = await executeSQL(sql, []);
         return res;
     }
+
+
 
 
 }
