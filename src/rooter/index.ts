@@ -4,7 +4,7 @@ import { TestTableRouter, UtilisateurRouter, Authenticator } from '../controller
 const router = express.Router();
 
 router.use('/debug', TestTableRouter);
-router.use('/utilisateur', UtilisateurRouter);
+router.use('/users', UtilisateurRouter);
 router.use('/auth', Authenticator);
 
 router.get('/', (req,res) => {

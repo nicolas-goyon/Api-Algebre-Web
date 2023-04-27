@@ -1,22 +1,87 @@
 import express from 'express';
-import { Utilisateur } from '../models';
+import { Token, Utilisateur } from '../models';
 export const router = express.Router();
 
-router.get('/login/:email/:password', async (req, res) => {
+router.post('/login', async (req, res) => {
     let data = {
-        email: req.params.email,
-        password: req.params.password,
+        email: req.body.email,
+        password: req.body.password,
     }
     let query = await Utilisateur.getDataUtilisateurByEmail(data.email);
     if (query !== undefined) {
         if (query.password === data.password) {
-            res.status(200).json('Connexion réussie'); // TODO : créer un token
+            const token = await Token.generateToken(query.id);
+            res.status(201)
+                .json({
+                    token: token.getToken(),
+        });
+         
         }
         else {
-            res.status(401).json('Mot de passe ou email incorrect'); // Mot de passe incorrect
+            res.status(409).json('Mot de passe ou email incorrect'); // Mot de passe incorrect
         }
     }
     else {
-        res.status(404).json('Mot de passe ou email incorrect'); // Utilisateur non trouvé
+        res.status(409).json('Mot de passe ou email incorrect'); // Utilisateur non trouvé
     }
 });
+
+// check if username is already taken
+router.get('/check/email/:email', async (req, res) => {
+    let data = {
+        email: req.params.email,
+    }
+    let query = await Utilisateur.getDataUtilisateurByEmail(data.email);
+    if (query !== undefined) {
+        res.status(409).json('Email déjà utilisé');
+    }
+    else {
+        res.status(201).json('Email disponible');
+    }
+});
+
+router.get('check/username/:username', async (req, res) => {
+    let data = {
+        username: req.params.username,
+    }
+    let query = await Utilisateur.getDataUtilisateurByPseudo(data.username);
+    if (query !== undefined) {
+        res.status(409).json('Nom d\'utilisateur déjà utilisé');
+    }
+    else {
+        res.status(201).json('Nom d\'utilisateur disponible');
+    }
+});
+
+router.post('/signup', async (req, res) => {
+    let data = {
+        email: req.body.email,
+        username: req.body.username,
+        password: req.body.password,
+    }
+    let query = await Utilisateur.getDataUtilisateurByEmail(data.email);
+    if (query !== undefined) {
+        res.status(409).json('Email déjà utilisé');
+    }
+    else {
+        let query = await Utilisateur.getDataUtilisateurByPseudo(data.username);
+        if (query !== undefined) {
+            res.status(409).json('Nom d\'utilisateur déjà utilisé');
+        }
+        else {
+            let newUser = new Utilisateur(null, data.username, data.password, data.email, null);
+            await newUser.save();
+            res.status(201).json('Utilisateur créé');
+        }
+    }
+});
+
+router.get('/getALLToken', async (req, res) => {
+    const result = await Token.getAllToken();
+    res.status(201).json(result);
+});
+
+// router.get('/create', async (req, res) => {
+//     const result = await Token.createTable();
+//     res.status(201).json(result);
+// });

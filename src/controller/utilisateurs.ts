@@ -7,6 +7,51 @@ export const router = express.Router();
 /*                                   ROUTER                                   */
 /* -------------------------------------------------------------------------- */
 
+
+declare global {
+    namespace Express {
+        interface Request {
+            context: any
+        }
+    }
+}
+
+
+router.get('/me', async (req, res) => {
+    if (req.context === null || req.context === undefined) {
+        res.status(401).json('Utilisateur non connecté');
+        return;
+    }
+    let data = {
+        pseudo : req.context.pseudo,
+        email : req.context.email,
+    }
+    res.json(data); // TODO : return 404 if null
+    // res.status(401).json('Utilisateur non connecté');
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* -------------------------------------------------------------------------- */
+/*                              DEPRECIATED CODE                              */
+/* -------------------------------------------------------------------------- */
+// TODO : remove this code
+
 router.get('/getAllUtilisateurs', async (req, res) => {
     let query = await db
         .selectFrom(Utilisateur.table_name)
@@ -64,10 +109,10 @@ router.post('/checkPassword', async (req, res) => {
         if (user.getPassword() === data.password) {
             res.json(200);
         } else {
-            res.json(401);
+            res.json(409);
         }
     } else {
-        res.json(401);
+        res.json(409);
     }
 });
 
@@ -80,7 +125,7 @@ router.get('/check/:pseudo', async (req, res) => {
     if (user !== null) {
         res.json(200);
     } else {
-        res.json(401);
+        res.json(409);
     }
 });
 
@@ -93,7 +138,7 @@ router.get('/check/:email', async (req, res) => {
     if (user !== null) {
         res.json(200);
     } else {
-        res.json(401);
+        res.json(409);
     }
 });
 

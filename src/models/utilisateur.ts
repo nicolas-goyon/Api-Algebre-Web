@@ -65,12 +65,6 @@ export class Utilisateur {
 
     public async save() {
         if (this.id === null) {
-            const result2 = await db
-                .insertInto(Utilisateur.table_name)
-                .values({ pseudo: this.pseudo, password: this.password, email: this.email })
-                .returning(['id', 'create_date'])
-                .compile();
-            console.log(result2);
             const result = await db
                 .insertInto(Utilisateur.table_name)
                 .values({ pseudo: this.pseudo, password: this.password, email: this.email })

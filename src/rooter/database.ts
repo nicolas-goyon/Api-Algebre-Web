@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { Kysely, PostgresDialect } from 'kysely';
-import { test_table, utilisateur } from '../models';
+import { test_table, utilisateur, connexionToken } from '../models';
 
 const pool = new Pool({
   user: 'algebre',
@@ -12,8 +12,9 @@ const pool = new Pool({
 
 
 interface Database {
-  test_table:test_table
-  utilisateur:utilisateur
+    test_table:test_table
+    utilisateur:utilisateur
+    connexiontoken:connexionToken
 }
 // You'd create one of these when you start your app.
 export const db = new Kysely<Database>({
