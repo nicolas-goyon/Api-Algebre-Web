@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { Kysely, PostgresDialect } from 'kysely';
-import { test_table, utilisateur, connexionToken } from '../models';
+import { test_table, utilisateur, connexionToken, workspace } from '../models';
 
 const pool = new Pool({
   user: 'algebre',
@@ -15,6 +15,7 @@ interface Database {
     test_table:test_table
     utilisateur:utilisateur
     connexiontoken:connexionToken
+    workspace:workspace
 }
 // You'd create one of these when you start your app.
 export const db = new Kysely<Database>({
@@ -24,10 +25,10 @@ export const db = new Kysely<Database>({
   })
 })
 
-export const executeSQL = async (query:string, values:Array<string>) => {
+export const executeSQL = async (query:string, values:Array<string> | null = null) => {
   var result = await pool.query({
       text: query,
-      values
+      values : values ?? []
   });
   return result.rows
 }
