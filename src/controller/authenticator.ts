@@ -8,22 +8,25 @@ router.post('/login', async (req, res) => {
         password: req.body.password,
     }
     let query = await Utilisateur.getDataUtilisateurByEmail(data.email);
-    if (query !== undefined) {
-        if (query.password === data.password) {
-            const token = await Token.generateToken(query.id);
-            res.status(201)
-                .json({
-                    token: token.getToken(),
-        });
-         
-        }
-        else {
-            res.status(409).json('Mot de passe ou email incorrect'); // Mot de passe incorrect
-        }
-    }
-    else {
+    
+    if (query === undefined || query === null) {
         res.status(409).json('Mot de passe ou email incorrect'); // Utilisateur non trouvé
+        return;
     }
+
+    if (query.password !== data.password) {
+        res.status(409).json('Mot de passe ou email incorrect'); // Mot de passe incorrect
+        return;
+    }
+
+
+    const token = await Token.generateToken(query.id);
+    res.status(201)
+        .json({
+            token: token.getToken(),
+    });
+
+
 });
 
 // check if username is already taken

@@ -38,10 +38,21 @@ router.post('/save', async (req, res) => {
     }
 });
 
-router.get('/getAll', async (req, res) => {
-    let workspaces = await Workspace.getAllWorkspaces();
-    res.json(workspaces).status(201);
+router.get('/all', async (req, res) => {
+    if (req.context === null || req.context === undefined) {
+        res.status(401).json('Utilisateur non connecté');
+        return;
+    }
+    let id_user = req.context.id;
+    let workspace = await Workspace.getWorkspacesByIdUser(id_user);
+    res.json(workspace).status(201);
 });
+
+
+// router.get('/getAll', async (req, res) => {
+//     let workspaces = await Workspace.getAllWorkspaces();
+//     res.json(workspaces).status(201);
+// });
 
 router.get('/createTable', async (req, res) => {
     await Workspace.createTable();
