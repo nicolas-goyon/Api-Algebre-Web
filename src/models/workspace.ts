@@ -127,6 +127,24 @@ export class Workspace {
         });
     }
 
+    public static async getWorkspaceByUserIdAndId(id_user: number, id: number): Promise<Workspace | null>{
+        const result = await db
+        .selectFrom(Workspace.table_name)
+        .where('id_user', '=', id_user)
+        .where('id', '=', id)
+        .selectAll()
+        .executeTakeFirst();
+        
+        if(result === null || result === undefined){
+            return null;
+        }
+        return new Workspace(
+            result.id,
+            result.id_user,
+            result.workspace_content
+        );
+    }
+
     public static async createTable(){
         const sql = `
         CREATE TABLE IF NOT EXISTS ${Workspace.table_name} (
@@ -136,19 +154,5 @@ export class Workspace {
         );
         `;
         await executeSQL(sql);
-    }
-
-    public static async getAllWorkspaces(): Promise<Workspace[]>{
-        const result = await db
-        .selectFrom(Workspace.table_name)
-        .selectAll()
-        .execute();
-        return result.map((row) => {
-            return new Workspace(
-                row.id,
-                row.id_user,
-                row.workspace_content
-            );
-        });
     }
 }
