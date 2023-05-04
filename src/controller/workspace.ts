@@ -40,15 +40,21 @@ router.post('/save', async (req, res) => {
     let workspace_content = req.body.workspace;
     let workspace = await Workspace.getWorkspacesByIdUser(id_user);
 
-    if (workspace.length === 0) {
+    if (req.body.workspaceId === null || req.body.workspaceId === undefined) {
         let newWorkspace = new Workspace(null, id_user, workspace_content);
         await newWorkspace.save();
-        res.json('Workspace créé').status(201);
+        res.json({id: newWorkspace.id}).status(201);
     } else {
-        let workspaceToUpdate = workspace[0];
+        let workspaceToUpdate = await Workspace.getWorkspaceByUserIdAndId(id_user, req.body.workspaceId);
+
+        if (workspaceToUpdate === null || workspaceToUpdate === undefined) {
+            res.status(401).json('Workspace non trouvé');
+            return;
+        }
+
         workspaceToUpdate.workspace_content = workspace_content;
         await workspaceToUpdate.save();
-        res.json('Workspace mis à jour').status(201);
+        res.json({id: workspaceToUpdate.id}).status(201);
     }
 });
 
