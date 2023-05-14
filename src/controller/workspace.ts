@@ -38,24 +38,21 @@ router.post('/save', async (req, res) => {
     }
     let id_user = req.context.id;
     let workspace_content = req.body.workspace;
-    let workspace = await Workspace.getWorkspacesByIdUser(id_user);
-
+    let name = req.body.name;
+    let workspace;
     if (req.body.workspaceId === null || req.body.workspaceId === undefined) {
-        let newWorkspace = new Workspace(null, id_user, workspace_content);
-        await newWorkspace.save();
-        res.json({id: newWorkspace.id}).status(201);
+        workspace = new Workspace(null, id_user, workspace_content,  name);
     } else {
-        let workspaceToUpdate = await Workspace.getWorkspaceByUserIdAndId(id_user, req.body.workspaceId);
-
-        if (workspaceToUpdate === null || workspaceToUpdate === undefined) {
+        workspace = await Workspace.getWorkspaceByUserIdAndId(id_user, req.body.workspaceId);
+        if (workspace === null || workspace === undefined) {
             res.status(401).json('Workspace non trouvé');
             return;
         }
-
-        workspaceToUpdate.workspace_content = workspace_content;
-        await workspaceToUpdate.save();
-        res.json({id: workspaceToUpdate.id}).status(201);
+        workspace.workspace_content = workspace_content;
+        workspace.name = name;
     }
+    await workspace.save();
+    res.json({id: workspace.id}).status(201);
 });
 
 router.get('/all', async (req, res) => {
@@ -69,7 +66,7 @@ router.get('/all', async (req, res) => {
     data = workspace.map((workspace) => {
         return {
             id: workspace.id,
-            title : "Workspace " + workspace.id,
+            title : workspace.name,
             workspace_content: workspace.workspace_content
         }
     });

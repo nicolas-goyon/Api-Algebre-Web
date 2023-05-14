@@ -3,12 +3,13 @@ import { db, executeSQL } from "../rooter/database";
 /* -------------------------------------------------------------------------- */
 /*                                    CLASS                                   */
 /* -------------------------------------------------------------------------- */
-
+// FIXME : Depreciated
 
 export interface workspace {
     id: Generated<number>;
     id_user: number;
     workspace_content: JSON;
+    name: string;
 }
 
 export class Workspace {
@@ -18,11 +19,13 @@ export class Workspace {
     private _id : number | null;
     private _id_user: number;
     private _workspace_content: JSON;
+    private _name: string;
     
-    constructor(id:number | null, id_user: number, workspace_content: JSON){
+    constructor(id:number | null, id_user: number, workspace_content: JSON, name: string){
         this._id = id
         this._id_user = id_user
         this._workspace_content = workspace_content
+        this._name = name
     }
 
     public get id(): number | null {
@@ -46,6 +49,13 @@ export class Workspace {
         this._workspace_content = value;
     }
 
+    public get name(): string {
+        return this._name;
+    }
+    public set name(value: string) {
+        this._name = value;
+    }
+
 
 
 
@@ -55,7 +65,8 @@ export class Workspace {
             .insertInto(Workspace.table_name)
             .values({
                 id_user: this.id_user,
-                workspace_content: this.workspace_content
+                workspace_content: this.workspace_content,
+                name: this.name
             })
             .returning('id')
             .executeTakeFirst();
@@ -68,7 +79,8 @@ export class Workspace {
             .updateTable(Workspace.table_name)
             .set({
                 id_user: this.id_user,
-                workspace_content: this.workspace_content
+                workspace_content: this.workspace_content,
+                name: this.name
             })
             .where('id', '=', this.id)
             .execute();
@@ -97,7 +109,8 @@ export class Workspace {
         return new Workspace(
             result.id,
             result.id_user,
-            result.workspace_content
+            result.workspace_content,
+            result.name
         );
     }
 
@@ -107,7 +120,8 @@ export class Workspace {
             return new Workspace(
                 row.id,
                 row.id_user,
-                row.workspace_content
+                row.workspace_content,
+                row.name
             );
         });
     }
@@ -122,7 +136,8 @@ export class Workspace {
             return new Workspace(
                 row.id,
                 row.id_user,
-                row.workspace_content
+                row.workspace_content,
+                row.name
             );
         });
     }
@@ -141,7 +156,8 @@ export class Workspace {
         return new Workspace(
             result.id,
             result.id_user,
-            result.workspace_content
+            result.workspace_content,
+            result.name
         );
     }
 

@@ -65,6 +65,13 @@ export class testTable {
                 .execute()
         }
     }
+
+    public async delete() {
+        await db
+            .deleteFrom(testTable.table_name)
+            .where('id', '=', this.id)
+            .execute()
+    }
 }
 
 /* -------------------------------------------------------------------------- */
