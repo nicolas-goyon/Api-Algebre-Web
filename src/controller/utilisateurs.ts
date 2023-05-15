@@ -8,7 +8,7 @@ export const router = express.Router();
 /* -------------------------------------------------------------------------- */
 
 
-router.get('/me', async (req, res) => {
+router.get('/', async (req, res) => {
     if (req.context === null || req.context === undefined) {
         res.status(401).json('Utilisateur non connecté');
         return;
@@ -18,19 +18,6 @@ router.get('/me', async (req, res) => {
         email : req.context.email,
     }
     res.json(data).status(201); // TODO : return 404 if null
-});
-
-router.get('/logout', async (req, res) => {
-    if (req.context === null || req.context === undefined) {
-        res.status(401).json('Utilisateur non connecté');
-        return;
-    }
-    // get the token and remove it from the database
-    let token = req.context.token;
-    let tokenItem = await Token.getTokenByToken(token);
-    await tokenItem?.delete();
-    res.json('Utilisateur déconnecté').status(201); // TODO : return 404 if null
-
 });
 
 

@@ -78,11 +78,24 @@ router.post('/signup', async (req, res) => {
         }
     }
 });
+router.post('/logout', async (req, res) => {
+    if (req.context === null || req.context === undefined) {
+        res.status(401).json('Utilisateur non connecté');
+        return;
+    }
+    // get the token and remove it from the database
+    let token = req.context.token;
+    let tokenItem = await Token.getTokenByToken(token);
+    await tokenItem?.delete();
+    res.json('Utilisateur déconnecté').status(201); // TODO : return 404 if null
 
-router.get('/getALLToken', async (req, res) => {
-    const result = await Token.getAllToken();
-    res.status(201).json(result);
 });
+
+
+// router.get('/getALLToken', async (req, res) => {
+//     const result = await Token.getAllToken();
+//     res.status(201).json(result);
+// });
 
 // router.get('/create', async (req, res) => {
 //     const result = await Token.createTable();
