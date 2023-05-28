@@ -15,6 +15,12 @@ declare global {
     }
 }
 
+function mycors(req: any, res: any, next: Function) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+}
 
 require('dotenv').config();
 
@@ -22,6 +28,7 @@ const app = express();
 
 app.use(morgan('dev'));
 app.use(helmet());
+app.use(mycors);
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());

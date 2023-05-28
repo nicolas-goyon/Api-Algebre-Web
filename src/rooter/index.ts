@@ -1,5 +1,5 @@
 import express from 'express';
-import { TestTableRouter, UtilisateurRouter, Authenticator, Workspace, RelationRouter } from '../controller';
+import { TestTableRouter, UtilisateurRouter, Authenticator, Workspace, RelationRouter, ExerciceRouter } from '../controller';
 
 const router = express.Router();
 
@@ -8,6 +8,7 @@ router.use('/users', UtilisateurRouter);
 router.use('/auth', Authenticator);
 router.use('/workspace', Workspace);
 router.use('/relation', RelationRouter);
+router.use('/exercice', ExerciceRouter);
 
 
 router.get('/', (req,res) => {

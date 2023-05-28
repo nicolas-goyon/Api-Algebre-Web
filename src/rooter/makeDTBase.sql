@@ -167,8 +167,10 @@ CREATE TRIGGER ExerciceUpdate
 CREATE OR REPLACE FUNCTION WorkspaceDataDeleteFunction()
     RETURNS TRIGGER AS $$
     BEGIN
-        DELETE FROM InterfaceWE WHERE id = OLD.id;
         DELETE FROM WorkspaceData WHERE id_super = OLD.id;
+        -- Delete all relations that are linked to the workspace
+        DELETE FROM Relation WHERE id_interface = OLD.id;
+        DELETE FROM InterfaceWE WHERE id = OLD.id;
         RETURN OLD;
     END;
 $$ LANGUAGE plpgsql;
@@ -182,8 +184,10 @@ CREATE TRIGGER WorkspaceDataDelete
 CREATE OR REPLACE FUNCTION ExerciceDeleteFunction()
     RETURNS TRIGGER AS $$
     BEGIN
-        DELETE FROM InterfaceWE WHERE id = OLD.id;
         DELETE FROM ExerciceData WHERE id_super = OLD.id;
+        -- Delete all relations that are linked to the workspace
+        DELETE FROM Relation WHERE id_interface = OLD.id;
+        DELETE FROM InterfaceWE WHERE id = OLD.id;
         RETURN OLD;
     END;
 $$ LANGUAGE plpgsql;

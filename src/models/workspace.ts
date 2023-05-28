@@ -10,22 +10,25 @@ export interface workspace {
     id_user: number;
     workspace_content: JSON;
     name: string;
+    id_exercice: number | null;
 }
 
 export class Workspace {
-    
+
     public static readonly table_name = "workspace";
 
-    private _id : number | null;
+    private _id: number | null;
     private _id_user: number;
     private _workspace_content: JSON;
     private _name: string;
-    
-    constructor(id:number | null, id_user: number, workspace_content: JSON, name: string){
+    private _id_exercice: number | null;
+
+    constructor(id: number | null, id_user: number, workspace_content: JSON, name: string, id_exercice: number | null = null) {
         this._id = id
         this._id_user = id_user
         this._workspace_content = workspace_content
         this._name = name
+        this._id_exercice = id_exercice
     }
 
     public get id(): number | null {
@@ -56,54 +59,94 @@ export class Workspace {
         this._name = value;
     }
 
+    public get id_exercice(): number | null {
+        return this._id_exercice;
+    }
+
+    public set id_exercice(value: number | null) {
+        this._id_exercice = value;
+    }
 
 
 
-    public async save(){
-        if(this.id === null){
+    public async save() {
+        if (this.id === null) {
             const result = await db
-            .insertInto(Workspace.table_name)
-            .values({
-                id_user: this.id_user,
-                workspace_content: this.workspace_content,
-                name: this.name
-            })
-            .returning('id')
-            .executeTakeFirst();
+                .insertInto(Workspace.table_name)
+                .values({
+                    id_user: this.id_user,
+                    workspace_content: this.workspace_content,
+                    name: this.name,
+                    id_exercice: this.id_exercice
+                })
+                .returning('id')
+                .executeTakeFirst();
             if (result === null || result === undefined) {
                 throw new Error('Insert failed');
             }
             this.id = result.id;
-        }else{
+        } else {
             await db
-            .updateTable(Workspace.table_name)
-            .set({
+                .updateTable(Workspace.table_name)
+                .set({
+                    id_user: this.id_user,
+                    workspace_content: this.workspace_content,
+                    name: this.name,
+                    id_exercice: this.id_exercice
+                })
+                .where('id', '=', this.id)
+                .execute();
+        }
+    }
+
+    public async insert() {
+        const result = await db
+            .insertInto(Workspace.table_name)
+            .values({
                 id_user: this.id_user,
                 workspace_content: this.workspace_content,
-                name: this.name
+                name: this.name,
+                id_exercice: this.id_exercice
             })
-            .where('id', '=', this.id)
-            .execute();
+            .returning('id')
+            .executeTakeFirst();
+        if (result === null || result === undefined) {
+            throw new Error('Insert failed');
         }
+        // if result.id is null, try to get the id of the last inserted row
+        if (result.id === null) {
+            const lastInserted = await db
+                .selectFrom(Workspace.table_name)
+                .selectAll()
+                .orderBy('id', 'desc')
+                .executeTakeFirst();
+            if (lastInserted === null || lastInserted === undefined) {
+                throw new Error('Insert failed');
+            }
+            this.id = lastInserted.id;
+        }
+        else
+            this.id = result.id;
+        console.log("Workspace inserted with id : " + this.id);
     }
 
-    public async delete(){
-        if(this.id !== null){
+    public async delete() {
+        if (this.id !== null) {
             await db
-            .deleteFrom(Workspace.table_name)
-            .where('id', '=', this.id)
-            .execute();
+                .deleteFrom(Workspace.table_name)
+                .where('id', '=', this.id)
+                .execute();
         }
     }
 
-    public static async findById(id: number): Promise<Workspace | null>{
+    public static async findById(id: number): Promise<Workspace | null> {
         const result = await db
-        .selectFrom(Workspace.table_name)
-        .where('id', '=', id)
-        .selectAll()
-        .executeTakeFirst();
+            .selectFrom(Workspace.table_name)
+            .where('id', '=', id)
+            .selectAll()
+            .executeTakeFirst();
 
-        if(result === null || result === undefined){
+        if (result === null || result === undefined) {
             return null;
         }
         return new Workspace(
@@ -114,61 +157,73 @@ export class Workspace {
         );
     }
 
-    public static async findAll(): Promise<Workspace[]>{
+    public static async findAll(): Promise<Workspace[]> {
         const result = await db.selectFrom(Workspace.table_name).selectAll().execute();
         return result.map((row) => {
             return new Workspace(
                 row.id,
                 row.id_user,
                 row.workspace_content,
-                row.name
+                row.name,
+                row.id_exercice
             );
         });
     }
 
-    public static async getWorkspacesByIdUser(id_user: number): Promise<Workspace[]>{
+    public static async getWorkspacesByIdUser(id_user: number): Promise<Workspace[]> {
         const result = await db
-        .selectFrom(Workspace.table_name)
-        .where('id_user', '=', id_user)
-        .selectAll()
-        .execute();
+            .selectFrom(Workspace.table_name)
+            .where('id_user', '=', id_user)
+            .selectAll()
+            .execute();
         return result.map((row) => {
             return new Workspace(
                 row.id,
                 row.id_user,
                 row.workspace_content,
-                row.name
+                row.name,
+                row.id_exercice
             );
         });
     }
 
-    public static async getWorkspaceByUserIdAndId(id_user: number, id: number): Promise<Workspace | null>{
+    public static async getWorkspaceByUserIdAndId(id_user: number, id: number): Promise<Workspace | null> {
         const result = await db
-        .selectFrom(Workspace.table_name)
-        .where('id_user', '=', id_user)
-        .where('id', '=', id)
-        .selectAll()
-        .executeTakeFirst();
-        
-        if(result === null || result === undefined){
+            .selectFrom(Workspace.table_name)
+            .where('id_user', '=', id_user)
+            .where('id', '=', id)
+            .selectAll()
+            .executeTakeFirst();
+
+        if (result === null || result === undefined) {
             return null;
         }
         return new Workspace(
             result.id,
             result.id_user,
             result.workspace_content,
-            result.name
+            result.name,
+            result.id_exercice
         );
     }
 
-    public static async createTable(){
-        const sql = `
-        CREATE TABLE IF NOT EXISTS ${Workspace.table_name} (
-            id SERIAL PRIMARY KEY,
-            id_user INTEGER NOT NULL,
-            workspace_content JSON NOT NULL
+    public static async getWorkspaceByUserIdAndExerciceId(id_user: number, id_exercice: number): Promise<Workspace | null> {
+        const result = await db
+            .selectFrom(Workspace.table_name)
+            .where('id_user', '=', id_user)
+            .where('id_exercice', '=', id_exercice)
+            .selectAll()
+            .executeTakeFirst();
+
+        if (result === null || result === undefined) {
+            return null;
+        }
+        return new Workspace(
+            result.id,
+            result.id_user,
+            result.workspace_content,
+            result.name,
+            result.id_exercice
         );
-        `;
-        await executeSQL(sql);
     }
 }
