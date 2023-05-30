@@ -184,6 +184,7 @@ CREATE TRIGGER WorkspaceDataDelete
 CREATE OR REPLACE FUNCTION ExerciceDeleteFunction()
     RETURNS TRIGGER AS $$
     BEGIN
+        DELETE FROM workspace WHERE id_exercice = OLD.id;
         DELETE FROM ExerciceData WHERE id_super = OLD.id;
         -- Delete all relations that are linked to the workspace
         DELETE FROM Relation WHERE id_interface = OLD.id;

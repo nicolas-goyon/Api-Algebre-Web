@@ -68,7 +68,7 @@ async function save(req: express.Request, res: express.Response) {
     let workspace_content = req.body.workspace;
     let name = req.body.name;
     let workspace;
-    if(name === null || name === undefined || name === ''){
+    if (name === null || name === undefined || name === '') {
         name = 'Sans titre';
     }
     if (req.body.workspaceId === null || req.body.workspaceId === undefined) {
@@ -94,8 +94,17 @@ router.post('/', async (req, res) => {
         return;
     }
     let id_user = req.context.id;
+    let id_exercice = null;
+    if (req.body.id_exercice)
+        id_exercice = Number(req.body.id_exercice);
     // Create new workspace and return id
-    let workspace = new Workspace(null, id_user, JSON.parse('{"languageVersion":0,"blocks":[{"type":"debut","id":"(I,;19+y#Q@`2f)c}u.e","x":100,"y":100,"deletable":false,"movable":false}]}'), 'Sans titre');
+    let workspace = new Workspace(
+        null,
+        id_user,
+        JSON.parse('{"languageVersion":0,"blocks":[{"type":"debut","id":"(I,;19+y#Q@`2f)c}u.e","x":100,"y":100,"deletable":false,"movable":false}]}'),
+        'Sans titre',
+        id_exercice
+    );
     await workspace.insert();
     res.json({ id: workspace.id }).status(201);
 });

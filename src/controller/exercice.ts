@@ -1,5 +1,5 @@
 import express from 'express';
-import { Exercice, Relation } from '../models';
+import { Exercice, Relation, Workspace } from '../models';
 export const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -33,19 +33,38 @@ router.get('/:id', async (req, res) => {
         return;
     }
     const relations = await Relation.getAllByInterface(exercice.id);
+    let relationData = [];
+    let resultat = null;
+    for (const relation of relations) {
+        if (relation.name === 'Résultat') {
+            resultat = {
+                id: relation.id_interface,
+                name: relation.name,
+                content: relation.content,
+            }
+        } else {
+            relationData.push({
+                id: relation.id_interface,
+                name: relation.name,
+                content: relation.content,
+            });
+        }
+    }
+    const workspace = await Workspace.getWorkspaceByUserIdAndExerciceId(req.context.id, exercice.id);
+    let workspaceId = null;
+    if (workspace !== null && workspace !== undefined) {
+        workspaceId = workspace.id;
+    }
     const data = {
         id: exercice.id,
         name: exercice.name,
         enonce: exercice.enonce,
-        relations: relations.map((relation) => {
-            return {
-                id: relation.id_interface,
-                name: relation.name,
-                content: relation.content,
-            };
-        }),
+        relations: relationData,
+        resultat: resultat,
+        workspaceId: workspaceId,
+
     };
-    res.json({ exercice : data }).status(201);
+    res.json({ exercice: data }).status(201);
 });
 
 router.post('/', async (req, res) => {
@@ -57,13 +76,10 @@ router.post('/', async (req, res) => {
     const name = req.body.name;
     const enonce = req.body.description;
     const exercice = await Exercice.create(id_user, name, enonce);
-    console.info(exercice)
-    console.info(req.body.relations)
+
     for (const relationRaw of req.body.relations) {
         const relation = new Relation(exercice.id, relationRaw.name, relationRaw.content);
         let res = await relation.save();
-        console.log(relation)
-        console.log(res);
     }
     // res.json({ id: null }).status(201);
     res.json({ id: exercice.id }).status(201);

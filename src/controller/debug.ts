@@ -90,38 +90,17 @@ router.get('/updateLineById/:id/:pass', async (req, res) => {
 // });
 router.get('/resetDeleteTrigger', async (req, res) => {
     let sqlQuery = `
-    
-CREATE OR REPLACE FUNCTION WorkspaceDataDeleteFunction()
-RETURNS TRIGGER AS $$
-BEGIN
-    DELETE FROM WorkspaceData WHERE id_super = OLD.id;
-    -- Delete all relations that are linked to the workspace
-    DELETE FROM Relation WHERE id_interface = OLD.id;
-    DELETE FROM InterfaceWE WHERE id = OLD.id;
-    RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-CREATE OR REPLACE TRIGGER WorkspaceDataDelete
-INSTEAD OF DELETE ON Workspace
-FOR EACH ROW
-EXECUTE FUNCTION WorkspaceDataDeleteFunction();
-
-
--- Trigger when deleting an exercice to delete the interface
-CREATE OR REPLACE FUNCTION ExerciceDeleteFunction()
-RETURNS TRIGGER AS $$
-BEGIN
-    DELETE FROM ExerciceData WHERE id_super = OLD.id;
-    -- Delete all relations that are linked to the workspace
-    DELETE FROM Relation WHERE id_interface = OLD.id;
-    DELETE FROM InterfaceWE WHERE id = OLD.id;
-    RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-CREATE OR REPLACE TRIGGER ExerciceDelete
-INSTEAD OF DELETE ON Exercice
-FOR EACH ROW
-EXECUTE FUNCTION ExerciceDeleteFunction();`
+    CREATE OR REPLACE FUNCTION ExerciceDeleteFunction()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        DELETE FROM workspace WHERE id_exercice = OLD.id;
+        DELETE FROM ExerciceData WHERE id_super = OLD.id;
+        -- Delete all relations that are linked to the workspace
+        DELETE FROM Relation WHERE id_interface = OLD.id;
+        DELETE FROM InterfaceWE WHERE id = OLD.id;
+        RETURN OLD;
+    END;
+$$ LANGUAGE plpgsql;`
     let query = await executeSQL(sqlQuery,[]);
     console.log(query)
     res.json(query);
